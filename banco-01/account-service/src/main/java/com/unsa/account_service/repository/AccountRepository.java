@@ -1,0 +1,8 @@
+package com.unsa.account_service.repository;
+
+import com.unsa.account_service.model.entity.AccountEntity;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+public interface AccountRepository extends MongoRepository<AccountEntity, String> {
+    // Puedes agregar métodos personalizados aquí si es necesario
+}
