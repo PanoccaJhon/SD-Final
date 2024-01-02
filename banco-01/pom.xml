@@ -21,6 +21,7 @@
 		<module>account-service</module>
 		<module>notification-service</module>
 		<module>transaction-service</module>
+		<module>client-service</module>
 	</modules>
 	<dependencies>
 	</dependencies>

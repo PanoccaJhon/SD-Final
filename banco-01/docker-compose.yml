@@ -8,9 +8,45 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - account_mongodb_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: account_database
 
+  # Data Base for client service
+  db-clients:
+    container_name: db-clients
+    image: mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - client_mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: client_database
+
+  # Data Base for Transaction service
+  db-transaction:
+    container_name: db-transaction
+    image: mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - transaction_mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: transaction_database
+
+  # Data Base for Transaction service
+  db-notification:
+    container_name: db-notification
+    image: mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - notification_mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: notification_database
+
 volumes:
-  mongodb_data:
+  account_mongodb_data:
+  client_mongodb_data:
+  transaction_database:
+  notification_database:

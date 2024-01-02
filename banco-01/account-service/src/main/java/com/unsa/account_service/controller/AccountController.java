@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
@@ -25,6 +27,18 @@ public class AccountController {
     @ResponseStatus(HttpStatus.OK)
     public AccountResponse getAccountById(@PathVariable String accountId) {
         return this.accountService.getAccountById(accountId);
+    }
+
+    @GetMapping("/{userId}/all")
+    @ResponseStatus(HttpStatus.OK)
+    public List<AccountResponse> getAllAccountByUserId(@PathVariable String userId){
+        return this.accountService.getAllAccountByUserId(userId);
+    }
+
+    @GetMapping("/all")
+    @ResponseStatus(HttpStatus.OK)
+    public List<AccountResponse> getAllAccounts(){
+        return this.accountService.getAllAccount();
     }
 
     // Otros métodos del controlador según las necesidades
