@@ -17,6 +17,35 @@ public class AccountService{
 
     private final AccountRepository accountRepository;
 
+    public boolean availableBalance(String accountId, double mount){
+        var account = this.accountRepository.findById(accountId);
+        double balance = 0.0;
+        if( account.isPresent())
+            balance = account.get().getBalance();
+        else
+            return false;
+        return balance > mount;
+    }
+    public boolean deposit(String accountId, double mount){
+        var account = this.accountRepository.findById(accountId);
+        if(account.isEmpty())
+            return false;
+        var balance = account.get().getBalance() + mount;
+        account.get().setBalance(balance);
+        this.accountRepository.save(account.get());
+        return false;
+    }
+    public boolean withdraw(String accountId, double mount){
+        if(!this.availableBalance(accountId,mount))
+            return false;
+        var account = this.accountRepository.findById(accountId);
+        if(account.isEmpty())
+            return false;
+        var balance = account.get().getBalance() - mount;
+        account.get().setBalance(balance);
+        this.accountRepository.save(account.get());
+        return false;
+    }
     public void createAccount(AccountRequest accountRequest) {
         var accountEntity = AccountEntity.builder()
                 .userId(accountRequest.getUserId())

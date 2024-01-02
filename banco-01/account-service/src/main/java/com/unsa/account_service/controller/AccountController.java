@@ -29,6 +29,22 @@ public class AccountController {
         return this.accountService.getAccountById(accountId);
     }
 
+    @GetMapping("/{accountId}/available/{mount}")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean isAvailable(@PathVariable String accountId, @PathVariable double mount){
+        return this.accountService.availableBalance(accountId, mount);
+    }
+    @GetMapping("/{accountId}/deposit/{mount}")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean deposit(@PathVariable String accountId, @PathVariable double mount){
+        return this.accountService.deposit(accountId,mount);
+    }
+    @GetMapping("/{accountId}/withdraw/{mount}")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean withdraw(@PathVariable String accountId, @PathVariable double mount){
+        return this.accountService.withdraw(accountId, mount);
+    }
+
     @GetMapping("/{userId}/all")
     @ResponseStatus(HttpStatus.OK)
     public List<AccountResponse> getAllAccountByUserId(@PathVariable String userId){
