@@ -28,7 +28,7 @@ services:
     container_name: db-transaction
     image: mongo
     ports:
-      - "27018:27017"
+      - "27019:27017"
     volumes:
       - transaction_mongodb_data:/data/db
     environment:
@@ -39,7 +39,7 @@ services:
     container_name: db-notification
     image: mongo
     ports:
-      - "27018:27017"
+      - "27020:27017"
     volumes:
       - notification_mongodb_data:/data/db
     environment:
@@ -48,5 +48,5 @@ services:
 volumes:
   account_mongodb_data:
   client_mongodb_data:
-  transaction_database:
-  notification_database:
+  transaction_mongodb_data:
+  notification_mongodb_data:

@@ -22,6 +22,8 @@
 		<module>notification-service</module>
 		<module>transaction-service</module>
 		<module>client-service</module>
+		<module>api-gateway</module>
+		<module>discovery-service</module>
 	</modules>
 	<dependencies>
 	</dependencies>
@@ -31,4 +33,15 @@
 		</plugins>
 	</build>
 
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 </project>
