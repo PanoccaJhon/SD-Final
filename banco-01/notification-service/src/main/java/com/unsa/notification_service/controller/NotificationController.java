@@ -13,7 +13,13 @@ import java.util.List;
 @RequestMapping("/api/notification")
 @RequiredArgsConstructor
 public class NotificationController {
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
+
+    @GetMapping("/all")
+    @ResponseStatus(HttpStatus.OK)
+    public List<NotificationResponse> getAllById(){
+        return this.notificationService.finAll();
+    }
 
     @GetMapping("/{accountId}")
     @ResponseStatus(HttpStatus.OK)

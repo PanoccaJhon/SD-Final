@@ -5,14 +5,16 @@ import com.unsa.notification_service.model.dto.NotificationRequest;
 import com.unsa.notification_service.model.entity.NotificationEntity;
 import com.unsa.notification_service.service.NotificationService;
 import com.unsa.notification_service.utils.JsonUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@AllArgsConstructor
 public class TransactionEventListener {
-    private final NotificationService notificationService = new NotificationService();
+    private final NotificationService notificationService;
 
     @KafkaListener(topics = "transaction-events")
     public void handlerTransactionNotification(String message){

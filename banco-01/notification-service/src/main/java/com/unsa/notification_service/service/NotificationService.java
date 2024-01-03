@@ -5,13 +5,15 @@ import com.unsa.notification_service.model.dto.NotificationRequest;
 import com.unsa.notification_service.model.dto.NotificationResponse;
 import com.unsa.notification_service.model.entity.NotificationEntity;
 import com.unsa.notification_service.repository.NotificationRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
-    private NotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
 
     public void createNotification(NotificationRequest notificationRequest){
         var notification = NotificationEntity.builder()
@@ -20,6 +22,10 @@ public class NotificationService {
                 .message(notificationRequest.getMessage())
                 .build();
         this.notificationRepository.save(notification);
+    }
+    public List<NotificationResponse> finAll(){
+        var notifications = notificationRepository.findAll();
+        return notifications.stream().map(this::mapToNotificationResponse).toList();
     }
 
     public List<NotificationResponse> findAllByAccountId(String accountId){

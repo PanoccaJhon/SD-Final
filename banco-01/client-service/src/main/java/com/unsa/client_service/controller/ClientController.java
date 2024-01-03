@@ -38,6 +38,4 @@ public class ClientController {
     public ClientResponse getClientById(@PathVariable String clientId){
         return clientService.getClientById(clientId);
     }
-
-
 }

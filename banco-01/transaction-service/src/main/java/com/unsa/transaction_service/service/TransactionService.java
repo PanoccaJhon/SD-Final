@@ -106,7 +106,7 @@ public class TransactionService {
         try{
             var ok =  this.webClientBuilder.build()
                     .get()
-                    .uri("lb//account-service/api/account/{accountId}/deposit/{mount}",accountId,mount)
+                    .uri("lb://account-service/api/account/{accountId}/deposit/{mount}",accountId,mount)
                     .retrieve()
                     .bodyToMono(Boolean.class).block();
             if(ok) {
@@ -128,14 +128,14 @@ public class TransactionService {
         try{
             var available = this.webClientBuilder.build()
                     .get()
-                    .uri("lb//account-service/api/account/{accountId}/available/{mount}",accountId,mount)
+                    .uri("lb://account-service/api/account/{accountId}/available/{mount}",accountId,mount)
                     .retrieve()
                     .bodyToMono(Boolean.class)
                     .block();
             if(available){
                 var ok = this.webClientBuilder.build()
                         .get()
-                        .uri("lb//account-service/api/account/{accountId}/withdraw/{mount}",accountId,mount)
+                        .uri("lb://account-service/api/account/{accountId}/withdraw/{mount}",accountId,mount)
                         .retrieve()
                         .bodyToMono(Boolean.class)
                         .block();
