@@ -15,7 +15,6 @@ public class NotificationEntity {
     @Id
     private String id;
     private String accountId;
-    private String destinyAccountId;
-    private String title;
-    private String body;
+    private String typeTransaction;
+    private String message;
 }

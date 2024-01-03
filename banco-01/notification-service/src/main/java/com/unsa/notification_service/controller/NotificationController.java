@@ -15,12 +15,6 @@ import java.util.List;
 public class NotificationController {
     private NotificationService notificationService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createNotification(@RequestBody NotificationRequest notificationRequest){
-        this.notificationService.createNotification(notificationRequest);
-    }
-
     @GetMapping("/{accountId}")
     @ResponseStatus(HttpStatus.OK)
     public NotificationResponse getNotificationByAccountId(@PathVariable String accountId){

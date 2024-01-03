@@ -1,5 +1,6 @@
 package com.unsa.notification_service.service;
 
+import com.unsa.notification_service.event.TransactionEvent;
 import com.unsa.notification_service.model.dto.NotificationRequest;
 import com.unsa.notification_service.model.dto.NotificationResponse;
 import com.unsa.notification_service.model.entity.NotificationEntity;
@@ -15,9 +16,8 @@ public class NotificationService {
     public void createNotification(NotificationRequest notificationRequest){
         var notification = NotificationEntity.builder()
                 .accountId(notificationRequest.getAccountId())
-                .destinyAccountId(notificationRequest.getDestinyAccountId())
-                .title(notificationRequest.getTitle())
-                .body(notificationRequest.getBody())
+                .typeTransaction(notificationRequest.getTypeTransaction())
+                .message(notificationRequest.getMessage())
                 .build();
         this.notificationRepository.save(notification);
     }
@@ -36,9 +36,8 @@ public class NotificationService {
         return NotificationResponse.builder()
                 .id(notificationEntity.getId())
                 .accountId(notificationEntity.getAccountId())
-                .destinyAccountId(notificationEntity.getAccountId())
-                .title(notificationEntity.getTitle())
-                .body(notificationEntity.getBody())
+                .typeTransaction(notificationEntity.getTypeTransaction())
+                .message(notificationEntity.getMessage())
                 .build();
     }
 }
