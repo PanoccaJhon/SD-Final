@@ -1,25 +1,7 @@
 version: '3'
 
 services:
-  discovery-service:
-    container_name: discovery-service
-    image: panoccajhon/sd-discovery
-    ports:
-      - "8761:8761"
-
-
-  api_gateway:
-    container_name: api_gateway
-    image: panoccajhon/sd-gateway
-    ports:
-      - "8080:8080"
-    depends_on:
-      - discovery-service
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-
-
-    ### Data Base for accounts service
+  ### Data Base for accounts service
   db-accounts:
     container_name: db-accounts
     image: mongo
@@ -29,15 +11,6 @@ services:
       - account_mongodb_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: account_database
-
-  account-service:
-    container_name: account-service
-    image: panoccajhon/sd-account
-    depends_on:
-      - db-accounts
-      - discovery-service
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
 
   # Data Base for client service
   db-clients:
@@ -49,15 +22,6 @@ services:
       - client_mongodb_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: client_database
-
-  client-service:
-    container_name: client-service
-    image: panoccajhon/sd-client
-    depends_on:
-      - db-clients
-      - discovery-service
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
 
   # Data Base for Transaction service
   db-transaction:
@@ -73,15 +37,6 @@ services:
     environment:
       MONGO_INITDB_DATABASE: transaction_database
 
-  transaction-service:
-    container_name: transaction-service
-    image: panoccajhon/sd-transaction
-    depends_on:
-      - db-transaction
-      - discovery-service
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-
   # Data Base for Transaction service
   db-notification:
     container_name: db-notification
@@ -92,15 +47,6 @@ services:
       - notification_mongodb_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: notification_database
-
-  notification-service:
-    container_name: notification-service
-    image: panoccajhon/sd-notification
-    depends_on:
-      - db-notification
-      - discovery-service
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
 
   zookeeper:
     container_name: zookeeper
