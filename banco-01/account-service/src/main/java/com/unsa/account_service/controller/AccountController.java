@@ -3,6 +3,8 @@ package com.unsa.account_service.controller;
 
 import com.unsa.account_service.model.dto.AccountRequest;
 import com.unsa.account_service.model.dto.AccountResponse;
+import com.unsa.account_service.model.dto.TransactionContent;
+import com.unsa.account_service.model.dto.TransactionResult;
 import com.unsa.account_service.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,20 +31,20 @@ public class AccountController {
         return this.accountService.getAccountById(accountId);
     }
 
-    @GetMapping("/{accountId}/available/{mount}")
+    @GetMapping("/available")
     @ResponseStatus(HttpStatus.OK)
-    public boolean isAvailable(@PathVariable String accountId, @PathVariable double mount){
-        return this.accountService.availableBalance(accountId, mount);
+    public TransactionResult isAvailable(@RequestBody TransactionContent transactionContent){
+        return this.accountService.availableBalance(transactionContent);
     }
-    @GetMapping("/{accountId}/deposit/{mount}")
+    @GetMapping("/deposit")
     @ResponseStatus(HttpStatus.OK)
-    public boolean deposit(@PathVariable String accountId, @PathVariable double mount){
-        return this.accountService.deposit(accountId,mount);
+    public TransactionResult deposit(@RequestBody TransactionContent transactionContent){
+        return this.accountService.deposit(transactionContent);
     }
-    @GetMapping("/{accountId}/withdraw/{mount}")
+    @GetMapping("/withdraw")
     @ResponseStatus(HttpStatus.OK)
-    public boolean withdraw(@PathVariable String accountId, @PathVariable double mount){
-        return this.accountService.withdraw(accountId, mount);
+    public TransactionResult withdraw(@RequestBody TransactionContent transactionContent){
+        return this.accountService.withdraw(transactionContent);
     }
 
     @GetMapping("/{userId}/all")
@@ -57,5 +59,4 @@ public class AccountController {
         return this.accountService.getAllAccount();
     }
 
-    // Otros métodos del controlador según las necesidades
 }

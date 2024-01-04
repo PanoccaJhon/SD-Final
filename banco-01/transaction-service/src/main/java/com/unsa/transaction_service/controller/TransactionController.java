@@ -26,7 +26,11 @@ public class TransactionController {
     public TransactionResponse getTransactionById(@PathVariable String transactionId){
         return this.transactionService.findTransactionById(transactionId);
     }
-
+    @GetMapping("/{accountId}")
+    @ResponseStatus(HttpStatus.OK)
+    public TransactionResponse getTransactionByAccountId(@PathVariable String accountId){
+        return this.transactionService.findTransactionByAccountId(accountId);
+    }
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
     public List<TransactionResponse> getAll(){

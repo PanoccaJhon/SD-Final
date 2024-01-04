@@ -13,8 +13,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class AccountEntity {
     @Id
     private String id;
-    private String userId;
-    private String status;
+    private String number;
+    private String clientId;
+    private boolean status;
     private String type;
     private double balance;
     private double maxCredit;

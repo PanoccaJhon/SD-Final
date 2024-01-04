@@ -1,8 +1,6 @@
 package com.unsa.transaction_service.service;
 
-import com.unsa.transaction_service.event.TransactionEvent;
-import com.unsa.transaction_service.model.dto.TransactionRequest;
-import com.unsa.transaction_service.model.dto.TransactionResponse;
+import com.unsa.transaction_service.model.dto.*;
 import com.unsa.transaction_service.model.entity.TransactionEntity;
 import com.unsa.transaction_service.repository.TransactionRepository;
 import com.unsa.transaction_service.utils.JsonUtils;
@@ -10,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -23,133 +23,135 @@ public class TransactionService {
     private final WebClient.Builder webClientBuilder;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    @Transactional
-    public void createTransaction(TransactionRequest transactionRequest){
-        var transaction = TransactionEntity.builder()
-                .clientId(transactionRequest.getClientId())
-                .accountId(transactionRequest.getAccountId())
-                .typeTransaction(transactionRequest.getTypeTransaction())
-                .originAccountId(transactionRequest.getOriginAccountId())
-                .destinyAccountId(transactionRequest.getDestinyAccountId())
-                .mountTransaction(transactionRequest.getMountTransaction())
-                .statusTransaction(transactionRequest.isStatusTransaction())
-                .build();
-        if(transact(transactionRequest))
-            transactionRepository.save(transaction);
-        else
-            log.info("No se puede completar la transaccion");
-    }
-
     public List<TransactionResponse> findAllTransaction(){
         var transactions = transactionRepository.findAll();
-        return transactions.stream().map(this::mapToTransactionResponse).toList();
+        return transactions.stream().map(this::mapTransactionEntityToTransactionResponse).toList();
     }
 
     public TransactionResponse findTransactionById(String id){
         var transaction = transactionRepository.findById(id);
-        return transaction.map(this::mapToTransactionResponse).orElse(null);
+        return transaction.map(this::mapTransactionEntityToTransactionResponse).orElse(null);
     }
 
     public TransactionResponse findTransactionByAccountId(String id){
         var transaction = transactionRepository.findTransactionEntitiesByAccountId();
-        return mapToTransactionResponse(transaction);
+        return mapTransactionEntityToTransactionResponse(transaction);
     }
 
-    private boolean updateAccounts(TransactionRequest transactionRequest){
-        return false;
-    }
-
-    private TransactionResponse mapToTransactionResponse(TransactionEntity transactionEntity){
-        return TransactionResponse.builder()
-                .id(transactionEntity.getId())
-                .clientId(transactionEntity.getClientId())
-                .accountId(transactionEntity.getAccountId())
-                .typeTransaction(transactionEntity.getTypeTransaction())
-                .originAccountId(transactionEntity.getOriginAccountId())
-                .destinyAccountId(transactionEntity.getDestinyAccountId())
-                .mountTransaction(transactionEntity.getMountTransaction())
-                .statusTransaction(transactionEntity.isStatusTransaction())
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    public void createTransaction(TransactionRequest transactionRequest){
+        var transaction = TransactionEntity.builder()
+                .accountId(transactionRequest.getAccountId())
+                .typeTransaction(transactionRequest.getTypeTransaction())
+                .destinyAccountId(transactionRequest.getDestinyAccountId())
+                .mountTransaction(transactionRequest.getMountTransaction())
+                .statusTransaction(transactionRequest.isStatusTransaction())
                 .build();
+        if(transact(transactionRequest).state())
+            transactionRepository.save(transaction);
+        else
+            log.info("No se puede completar la transaccion");
+        throw new RuntimeException("Error en la transaccion en tiempo de ejecucion.");
     }
 
-    private boolean transact(TransactionRequest transactionRequest){
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public TransactionResult transact(TransactionRequest transactionRequest){
         var type = transactionRequest.getTypeTransaction();
         return switch (type) {
             case "withdraw" -> this.withdraw(transactionRequest);
             case "deposit" -> this.deposit(transactionRequest);
             case "transfer" -> this.transfer(transactionRequest);
-            default -> false;
+            default -> new TransactionResult(false, "Tipo de transaccion no permitida");
         };
     }
 
-    private boolean transfer(TransactionRequest transactionRequest) {
+    private TransactionResult transfer(TransactionRequest transactionRequest) {
         var accountId = transactionRequest.getAccountId();
         var destinyAccountId = transactionRequest.getDestinyAccountId();
         var typeTransaction = transactionRequest.getTypeTransaction();
-        var mount = transactionRequest.getMountTransaction();
         String message;
-        boolean okWithdraw = this.withdraw(transactionRequest);
-        if (okWithdraw) {
-            boolean okDeposit = this.deposit(transactionRequest);
-            if (okDeposit){
-                message = "Se ha realizado una transferencia";
+        var stateWithdraw = this.withdraw(transactionRequest);
+        if (stateWithdraw.state()) {
+            transactionRequest.setAccountId(destinyAccountId);
+            var stateDeposit = this.deposit(transactionRequest);
+            if (stateDeposit.state()){
+                var accountDestiny = this.webClientBuilder.build()
+                        .get()
+                        .uri("lb://account-service/api/account/{}",destinyAccountId)
+                        .retrieve()
+                        .bodyToMono(AccountResponse.class)
+                        .block();
+                message = "Se ha realizado una transferencia a la cuenta: "+accountDestiny.getNumber();
                 this.sendKafkaEvent(new TransactionEvent(accountId, typeTransaction,message));
-            }
+            }else
+                throw new RuntimeException("Error al depositar, hacer RollBack.");
         }
-        return okWithdraw;
+        return new TransactionResult(false, "Fallo al retirar saldo");
     }
 
-    private boolean deposit(TransactionRequest transactionRequest) {
+    private TransactionResult deposit(TransactionRequest transactionRequest) {
         var accountId = transactionRequest.getAccountId();
         var mount = transactionRequest.getMountTransaction();
-        String message;
+
+        var transactionContent = new TransactionContent(accountId,mount);
+
+        String uriDeposit = "lb://account-service/api/account/deposit";
+
         try{
-            var ok =  this.webClientBuilder.build()
-                    .get()
-                    .uri("lb://account-service/api/account/{accountId}/deposit/{mount}",accountId,mount)
+            var transactionResult = this.webClientBuilder.build()
+                    .post()
+                    .uri(uriDeposit)
+                    .body(transactionContent, TransactionContent.class)
                     .retrieve()
-                    .bodyToMono(Boolean.class).block();
-            if(ok) {
-                message = "Se ha realizado un deposito en su cuenta - Revice su estado de cuenta";
-                this.sendKafkaEvent(new TransactionEvent(accountId, transactionRequest.getTypeTransaction(), message));
-            }
-            return Boolean.TRUE.equals(ok);
-        }catch (NullPointerException e){
-            log.info("Error at deposit:{}",e.getMessage());
-            return false;
+                    .bodyToMono(TransactionResult.class)
+                    .block();
+            assert transactionResult != null;
+            if(transactionResult.state())
+                this.sendKafkaEvent(new TransactionEvent(accountId, transactionRequest.getTypeTransaction(), transactionResult.message()));
+            return transactionResult;
+        }catch (Exception e){
+            log.info("Internal error at deposit:{}",e.getMessage());
         }
+        throw new RuntimeException();
     }
 
-    private boolean withdraw(TransactionRequest transactionRequest){
+    private TransactionResult withdraw(TransactionRequest transactionRequest){
         var accountId = transactionRequest.getAccountId();
         var mount = transactionRequest.getMountTransaction();
         var typeTransaction = transactionRequest.getTypeTransaction();
         String message;
+        var transactionContent = new TransactionContent(accountId,mount);
+        String uriAvailable = "lb://account-service/api/account/available";
+        String uriWithdraw = "lb://account-service/api/account/withdraw";
         try{
             var available = this.webClientBuilder.build()
-                    .get()
-                    .uri("lb://account-service/api/account/{accountId}/available/{mount}",accountId,mount)
+                    .post()
+                    .uri(uriAvailable)
+                    .body(transactionContent, TransactionContent.class)
                     .retrieve()
-                    .bodyToMono(Boolean.class)
+                    .bodyToMono(TransactionResult.class)
                     .block();
-            if(available){
-                var ok = this.webClientBuilder.build()
-                        .get()
-                        .uri("lb://account-service/api/account/{accountId}/withdraw/{mount}",accountId,mount)
+            assert available != null;
+            if(available.state()){
+                var transactionResult = this.webClientBuilder.build()
+                        .post()
+                        .uri(uriWithdraw)
                         .retrieve()
-                        .bodyToMono(Boolean.class)
+                        .bodyToMono(TransactionResult.class)
                         .block();
-                if(ok){
+                assert transactionResult != null;
+                if(transactionResult.state()){
                     message = "Se ha realizado un retiro en su cuenta - Se recomienda revisar el estado de balance.\n"
                     +"Si esta seguro de la operacion ignore esto";
                     this.sendKafkaEvent(new TransactionEvent(accountId, typeTransaction,message));
                 }
-                return Boolean.TRUE.equals(ok);
+                return transactionResult;
             }else
-                return false;
+                return available;
         }catch (NullPointerException e){
             log.info("Error: {}",e.getMessage());
-            return false;
+            throw new RuntimeException();
         }
     }
 
@@ -158,4 +160,16 @@ public class TransactionService {
                 transactionEvent
         ));
     }
+
+    private TransactionResponse mapTransactionEntityToTransactionResponse(TransactionEntity transactionEntity){
+        return TransactionResponse.builder()
+                .id(transactionEntity.getId())
+                .accountId(transactionEntity.getAccountId())
+                .typeTransaction(transactionEntity.getTypeTransaction())
+                .destinyAccountId(transactionEntity.getDestinyAccountId())
+                .mountTransaction(transactionEntity.getMountTransaction())
+                .statusTransaction(transactionEntity.isStatusTransaction())
+                .build();
+    }
+
 }

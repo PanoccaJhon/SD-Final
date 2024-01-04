@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AccountRequest {
-    private String userId;
-    private String status;
+    private String number;
+    private String clientId;
+    private boolean status;
     private String type;
     private double balance;
     private double maxCredit;

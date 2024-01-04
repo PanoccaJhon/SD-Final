@@ -1,8 +1,5 @@
-package com.unsa.account_service.model.dto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package com.unsa.transaction_service.model.dto;
+import lombok.*;
 
 @Data
 @AllArgsConstructor

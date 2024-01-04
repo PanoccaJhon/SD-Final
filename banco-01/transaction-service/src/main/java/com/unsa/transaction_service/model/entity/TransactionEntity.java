@@ -14,10 +14,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class TransactionEntity {
     @Id
     private String id;
-    private String clientId;
     private String accountId;
     private String typeTransaction;
-    private String originAccountId;
     private String destinyAccountId;
     private double mountTransaction;
     private boolean statusTransaction;
