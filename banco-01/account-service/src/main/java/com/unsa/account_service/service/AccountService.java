@@ -68,8 +68,8 @@ public class AccountService{
         var account =  accountRepository.findById(accountId);
         return account.map(this::mapToAccountResponse).orElse(null);
     }
-    public List<AccountResponse> getAllAccountByUserId(String userId){
-        var accounts = accountRepository.findAllByUserId(userId);
+    public List<AccountResponse> getAllAccountByClientId(String userId){
+        var accounts = accountRepository.findAllByClientId(userId);
         return accounts.stream().map(this::mapToAccountResponse).toList();
     }
     public List<AccountResponse> getAllAccount(){

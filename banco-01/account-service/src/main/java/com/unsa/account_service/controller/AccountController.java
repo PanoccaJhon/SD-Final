@@ -47,10 +47,10 @@ public class AccountController {
         return this.accountService.withdraw(transactionContent);
     }
 
-    @GetMapping("/{userId}/all")
+    @GetMapping("/{clientId}/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<AccountResponse> getAllAccountByUserId(@PathVariable String userId){
-        return this.accountService.getAllAccountByUserId(userId);
+    public List<AccountResponse> getAllAccountByClientId(@PathVariable String clientId){
+        return this.accountService.getAllAccountByClientId(clientId);
     }
 
     @GetMapping("/all")

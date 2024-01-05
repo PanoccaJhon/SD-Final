@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface AccountRepository extends MongoRepository<AccountEntity, String> {
-    List<AccountEntity> findAllByUserId(String userId);
+    List<AccountEntity> findAllByClientId(String clientId);
 }
